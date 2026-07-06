@@ -11,3 +11,36 @@ wheels/
 
 #data
 data/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Vector database
+vector_store/
+
+# Generated knowledge base
+knowledge_base/
+
+# SQLite database
+database/*.db
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
