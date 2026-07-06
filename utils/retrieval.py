@@ -3,8 +3,7 @@ from pathlib import Path
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 
-
-VECTOR_DB = Path("vector_store")
+VECTOR_STORE = Path("vector_store")
 
 
 class Retriever:
@@ -16,11 +15,27 @@ class Retriever:
         )
 
         self.db = FAISS.load_local(
-            str(VECTOR_DB),
+            str(VECTOR_STORE),
             embeddings,
-            allow_dangerous_deserialization=True
+            allow_dangerous_deserialization=True,
         )
 
-    def search(self, query, k=3):
+    def retrieve(self, query: str, k: int = 4):
 
-        return self.db.similarity_search(query, k=k)
+        docs = self.db.similarity_search(query, k=k)
+
+        return docs
+
+    def build_context(self, docs):
+
+        context = ""
+
+        for i, doc in enumerate(docs, 1):
+
+            context += (
+                f"\nDocument {i}\n"
+                f"Source: {doc.metadata.get('source')}\n\n"
+                f"{doc.page_content}\n\n"
+            )
+
+        return context
