@@ -8,3 +8,13 @@ psycopg2-binary
 sqlalchemy==2.0.30
 kafka-python==2.0.2
 pytest==8.2.2
+langchain-community
+langchain-huggingface
+faiss-cpu
+sentence-transformers
+pypdf
+python-dotenv
+beautifulsoup4
+requests
+markdownify
+lxml
