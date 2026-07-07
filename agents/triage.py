@@ -1,5 +1,6 @@
-from llm.ollama_provider import OllamaProvider
 from llm.prompt_builder import TRIAGE_SYSTEM_PROMPT
+from utils.singletons import llm
+
 
 
 class TriageAgent:
@@ -12,7 +13,7 @@ class TriageAgent:
 
     def __init__(self):
 
-        self.llm = OllamaProvider()
+        self.llm = llm
 
     def route(self, question: str) -> str:
 
