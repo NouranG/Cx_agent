@@ -1,43 +1,38 @@
-from dataclasses import dataclass
-from typing import List
+from core.response import ResponseFactory
 
-from llm.ollama_provider import OllamaProvider
 from llm.prompt_builder import KNOWLEDGE_SYSTEM_PROMPT
-from utils.retrieval import Retriever
-
-
-@dataclass
-class KnowledgeResponse:
-    question: str
-    answer: str
-    sources: List[str]
-    success: bool
+from utils.singletons import retriever
+from utils.singletons import llm
 
 
 class KnowledgeAgent:
 
     def __init__(self):
 
-        self.retriever = Retriever()
-        self.llm = OllamaProvider()
+        self.retriever = retriever
+        self.llm = llm
 
     def answer(
         self,
         question: str,
         k: int = 4,
-    ) -> KnowledgeResponse:
+    ):
 
-        docs = self.retriever.retrieve(question, k=k)
+        docs = self.retriever.retrieve(
+            question,
+            k=k,
+        )
 
         if not docs:
-            return KnowledgeResponse(
-                question=question,
-                answer="I couldn't find any relevant information.",
-                sources=[],
-                success=False,
+
+            return ResponseFactory.failure(
+                agent="knowledge",
+                message="I couldn't find any relevant information.",
             )
 
-        context = self.retriever.build_context(docs)
+        context = self.retriever.build_context(
+            docs
+        )
 
         user_prompt = f"""
 Context:
@@ -61,9 +56,11 @@ Answer:
             )
         )
 
-        return KnowledgeResponse(
-            question=question,
-            answer=answer,
-            sources=sources,
-            success=True,
+        return ResponseFactory.success(
+            agent="knowledge",
+            message=answer,
+            data={
+                "sources": sources,
+                "documents": len(docs),
+            },
         )
