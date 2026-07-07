@@ -1,40 +1,38 @@
-from dataclasses import dataclass
-from typing import Optional
+from core.response import ResponseFactory
 
 from database.db import Database
-from llm.ollama_provider import OllamaProvider
 from llm.prompt_builder import BILLING_SYSTEM_PROMPT
+from utils.singletons import llm
 
-
-@dataclass
-class BillingResponse:
-    customer_id: int
-    answer: str
-    success: bool
 
 
 class BillingAgent:
 
     def __init__(self):
         self.db = Database()
-        self.llm = OllamaProvider()
+        self.llm = llm
 
     def answer(
         self,
         customer_id: int,
         question: str,
-    ) -> BillingResponse:
+    ):
 
         customer = self.db.get_customer(customer_id)
 
         if customer is None:
-            return BillingResponse(
-                customer_id,
-                "Customer not found.",
-                False,
+            return ResponseFactory.failure(
+                agent="billing",
+                message="Customer not found.",
             )
 
         bill = self.db.get_bill(customer_id)
+
+        if bill is None:
+            return ResponseFactory.failure(
+                agent="billing",
+                message="No billing information found.",
+            )
 
         prompt = f"""
 Customer
@@ -75,8 +73,12 @@ Customer Question
             prompt,
         )
 
-        return BillingResponse(
-            customer_id,
-            answer,
-            True,
+        return ResponseFactory.success(
+            agent="billing",
+            message=answer,
+            data={
+                "customer_id": customer_id,
+                "customer": customer,
+                "bill": bill,
+            },
         )
