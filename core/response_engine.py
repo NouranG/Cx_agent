@@ -1,62 +1,49 @@
-"""
-Standard response format for all support agents.
-"""
+from agents.billing_agent import BillingAgent
+from agents.knowledge_agent import KnowledgeAgent
+from agents.technical_agent import TechnicalAgent
+from agents.triage import TriageAgent
 
-from dataclasses import dataclass, field
-from typing import Any, Dict
-
-
-@dataclass
-class AgentResponse:
-    """
-    Standard response object returned by every agent.
-    """
-
-    success: bool
-    agent: str
-    message: str
-    confidence: float = 1.0
-    data: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self):
-        return {
-            "success": self.success,
-            "agent": self.agent,
-            "message": self.message,
-            "confidence": self.confidence,
-            "data": self.data,
-        }
+from core.request import SupportRequest
+from core.response import ResponseFactory
 
 
 class ResponseEngine:
-    """
-    Factory methods for standardized responses.
-    """
 
-    @staticmethod
-    def success(agent: str,
-                message: str,
-                confidence: float = 1.0,
-                data: Dict[str, Any] | None = None):
+    def __init__(self):
 
-        return AgentResponse(
-            success=True,
-            agent=agent,
-            message=message,
-            confidence=confidence,
-            data=data or {},
-        )
+        self.triage = TriageAgent()
 
-    @staticmethod
-    def failure(agent: str,
-                message: str,
-                confidence: float = 0.0,
-                data: Dict[str, Any] | None = None):
+        self.billing = BillingAgent()
 
-        return AgentResponse(
-            success=False,
-            agent=agent,
-            message=message,
-            confidence=confidence,
-            data=data or {},
+        self.technical = TechnicalAgent()
+
+        self.knowledge = KnowledgeAgent()
+
+    def process(
+        self,
+        request: SupportRequest,
+    ):
+
+        route = self.triage.route(request.message)
+
+        if route == "billing":
+            return self.billing.answer(
+                request.customer_id,
+                request.message,
+            )
+
+        elif route == "technical":
+            return self.technical.answer(
+                request.customer_id,
+                request.message,
+            )
+
+        elif route == "knowledge":
+            return self.knowledge.answer(
+                request.message,
+            )
+
+        return ResponseFactory.failure(
+            agent="response_engine",
+            message=f"Unknown route: {route}",
         )
