@@ -1,16 +1,9 @@
-from dataclasses import dataclass
+from core.response import ResponseFactory
 
 from database.db import Database
-from llm.ollama_provider import OllamaProvider
 from llm.prompt_builder import TECHNICAL_SYSTEM_PROMPT
-from utils.retrieval import Retriever
-
-
-@dataclass
-class TechnicalResponse:
-    customer_id: int
-    answer: str
-    success: bool
+from utils.singletons import retriever
+from utils.singletons import llm
 
 
 class TechnicalAgent:
@@ -18,27 +11,24 @@ class TechnicalAgent:
     def __init__(self):
 
         self.db = Database()
-        self.retriever = Retriever()
-        self.llm = OllamaProvider()
+        self.retriever = retriever
+        self.llm = llm
 
     def answer(
         self,
         customer_id: int,
         question: str,
-    ) -> TechnicalResponse:
+    ):
 
         network = self.db.get_network_status(customer_id)
 
         if network is None:
-
-            return TechnicalResponse(
-                customer_id,
-                "Customer not found.",
-                False,
+            return ResponseFactory.failure(
+                agent="technical",
+                message="Customer not found.",
             )
 
         docs = self.retriever.retrieve(question)
-
         context = self.retriever.build_context(docs)
 
         prompt = f"""
@@ -74,8 +64,15 @@ Customer Question
             prompt,
         )
 
-        return TechnicalResponse(
-            customer_id,
-            answer,
-            True,
+        return ResponseFactory.success(
+            agent="technical",
+            message=answer,
+            data={
+                "customer_id": customer_id,
+                "network": network,
+                "sources": [
+                    doc.metadata.get("source", "")
+                    for doc in docs
+                ],
+            },
         )
