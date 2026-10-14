@@ -1,4 +1,4 @@
-CREATE TABLE customers (
+CREATE TABLE IF NOT EXISTS customers (
     customer_id INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -14,24 +14,22 @@ CREATE TABLE customers (
     join_date TEXT
 );
 
-CREATE TABLE bills (
+CREATE TABLE IF NOT EXISTS bills (
     bill_id INTEGER PRIMARY KEY,
     customer_id INTEGER,
     amount REAL,
     due_date TEXT,
     status TEXT,
     last_payment_date TEXT,
-    FOREIGN KEY(customer_id)
-        REFERENCES customers(customer_id)
+    FOREIGN KEY(customer_id) REFERENCES customers(customer_id)
 );
 
-CREATE TABLE network (
+CREATE TABLE IF NOT EXISTS network (
     customer_id INTEGER PRIMARY KEY,
     outage INTEGER,
     internet_status TEXT,
     router_status TEXT,
     signal_strength INTEGER,
     last_restart TEXT,
-    FOREIGN KEY(customer_id)
-        REFERENCES customers(customer_id)
+    FOREIGN KEY(customer_id) REFERENCES customers(customer_id)
 );
